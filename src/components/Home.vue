@@ -1,23 +1,20 @@
 <template>
     <div class="home">
-        <h1>Welcome to the Home Page</h1>
-        <p>This is the home page of your application.</p>
+      <h1>Welcome to our Movie Database</h1>
+      <MovieSection />
+      <ActorSection />
     </div>
-</template>
-
-<script>
-export default {
+  </template>
+  
+  <script>
+  import MovieSection from '@/components/MovieSection.vue'
+  import ActorSection from '@/components/ActorSection.vue'
+  
+  export default {
     name: 'Home',
-};
-</script>
-
-<style scoped>
-.home {
-    text-align: center;
-    margin-top: 50px;
-}
-
-h1 {
-    color: #42b983;
-}
-</style>
+    components: {
+      MovieSection,
+      ActorSection
+    }
+  }
+  </script>
