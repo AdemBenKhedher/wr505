@@ -1,55 +1,53 @@
-<!-- ActorDetails.vue -->
+
 <template>
-  <div class="actor-details" v-if="actor">
-    <h1>{{ actor.name }}</h1>
-    <p>{{ actor.bio }}</p>
-    <!-- Add other actor details here -->
-    
-    <h2>Filmography</h2>
-    <div class="movie-grid">
-      <MovieCard 
-        v-for="movie in actor.movies" 
-        :key="movie.id" 
-        :movie="movie"
-        @click="goToMovieDetails(movie.id)"
-      />
-    </div>
+  <div>
+    <h2>Liste des Acteurs</h2>
+        <p>Prénom : {{ actor.firstname }}</p>
+        <p>Nom : {{ actor.lastname }}</p>
+        <p>Date de naissance : {{ actor.dob }}</p>
+        <p>Nationalité : {{ actor.nationalty }}</p>
+        <p>Récompenses : {{ actor.awards }}</p>
+        <img :src="actor.media" alt="Image de l'acteur" />
   </div>
 </template>
-
 <script>
-import MovieCard from './MovieCard.vue';
-
 export default {
-  components: {
-    MovieCard
-  },
   data() {
     return {
-      actor: null
-    }
+      actor: {}
+    };
   },
-  methods: {
-    goToMovieDetails(movieId) {
-      this.$router.push({ name: 'MovieDetails', params: { id: movieId } });
-    },
-    async fetchActorDetails() {
-      // Fetch the actor details from your API
-      // This is a placeholder implementation
-      const actorId = this.$route.params.id;
-      this.actor = await fetch(`/api/actors/${actorId}`).then(res => res.json());
-    }
-  },
-  mounted() {
-    this.fetchActorDetails();
-  }
-}
-</script>
+  created() {
+    const actorId = this.$route.params.id;
+    const requestOptions = {
+      method: "GET",
+      redirect: "follow"
+    };
+    fetch(`http://symfony.mmi-troyes.fr:8319/api/actors/${actorId}`, requestOptions)
+      .then((response) => response.json())
+      .then((result) => {
+        this.actor = result;
+        console.log("Détails du film récupérés :", this.actor);
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la récupération des détails du film :", error);
+        this.errorMessage = "Impossible de récupérer les acteurs.";
 
+      });
+  }
+};
+</script>
 <style scoped>
-.movie-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px;
+ul {
+  list-style-type: none;
+}
+
+li {
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 </style>

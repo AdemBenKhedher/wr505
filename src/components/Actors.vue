@@ -9,6 +9,9 @@ export default {
     };
   },
   methods: {
+    goToDetails(id) {
+      this.$router.push({ name: 'actor-details', params: { id } });
+    },
     fetchActors() {
       const requestOptions = {
         method: "GET",
@@ -58,6 +61,8 @@ h2 {
         <p>Date de naissance : {{ actor.dob }}</p>
         <p>Nationalité : {{ actor.nationalty }}</p>
         <p>Récompenses : {{ actor.awards }}</p>
+        <button @click="goToDetails(actor.id)">Voir détails</button>
+
         <img :src="actor.media" alt="Image de l'acteur" />
       </li>
     </ul>

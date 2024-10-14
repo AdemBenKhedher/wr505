@@ -23,7 +23,7 @@ const router = new Router({
     { path: '/login', component: Login },
     { path: '/profile', component: Profile },
     { path: '*', redirect: '/' } ,
-    { path: '/actor/:id', component: ActorDtails },
+    { path: '/actor/:id', component: ActorDtails, name: 'actor-details' },
     { path: '/movie/:id', component: MovieDetails , name: 'movie-details'}
   ]
 });
