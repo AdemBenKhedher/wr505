@@ -1,50 +1,63 @@
-<!-- MovieSection.vue -->
 <template>
-    <section class="movie-section">
-      <h2>Recent Movies</h2>
-      <div class="movie-grid">
-        <MovieCard 
-          v-for="movie in recentMovies" 
-          :key="movie.id" 
-          :movie="movie"
-          @click="goToMovieDetails(movie.id)"
-        />
-      </div>
-    </section>
-  </template>
-  
-  <script>
-  import MovieCard from './MovieCard.vue';
-  
-  export default {
-    components: {
-      MovieCard
-    },
-    data() {
-      return {
-        recentMovies: [] // This will be populated with the 4 most recent movies
-      }
-    },
-    methods: {
-      goToMovieDetails(movieId) {
-        this.$router.push({ name: 'MovieDetails', params: { id: movieId } });
-      },
-      async fetchRecentMovies() {
-        // Fetch the 4 most recent movies from your API
-        // This is a placeholder implementation
-        this.recentMovies = await fetch('/api/recent-movies?limit=4').then(res => res.json());
-      }
-    },
-    mounted() {
-      this.fetchRecentMovies();
+  <div>
+    <h2>Liste des movies</h2>
+    <div v-if="errorMessage">{{ errorMessage }}</div>
+    <ul v-else>
+      <MovieCard v-for="movie in recentMovies" :key="movie.id" :movie="movie" />
+    </ul>
+  </div>
+</template>
+<script>
+import MovieCard from './MovieCard.vue';
+
+export default {
+  components: {
+    MovieCard
+  },
+  data() {
+    return {
+      movies: [], // Pour stocker les movies récupérés
+      errorMessage: null // Pour gérer et afficher une erreur potentielle
+    };
+  },
+  computed: {
+    recentMovies() {
+      const sortedMovies = this.movies
+        .filter(movie => movie.id != null) // Filtrer les movies avec un ID valide
+        .sort((a, b) => b.id - a.id); // Trie par ID décroissant
+
+      // Retourne les 4 premiers movies après le tri
+      return sortedMovies.slice(0, 4);
     }
+  },
+  methods: {
+    goToDetails(id) {
+      this.$router.push({ name: 'movie-details', params: { id } });
+    },
+    fetchMovies() {
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+
+      fetch("http://symfony.mmi-troyes.fr:8319/api/movies", requestOptions)
+        .then((response) => response.json()) // Transformer la réponse en JSON
+        .then((result) => {
+          this.movies = result.member; // Stocker les movies dans le tableau 'movies'
+          console.log("movies récupérés :", this.movies);
+        })
+        .catch((error) => {
+          console.error("Erreur lors de la récupération des movies :", error);
+          this.errorMessage = "Impossible de récupérer les movies.";
+        });
+    }
+  },
+  created() {
+    this.fetchMovies(); // Appeler la méthode lorsque le composant est monté
   }
-  </script>
-  
-  <style scoped>
-  .movie-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-  }
-  </style>
+};
+</script>
+
+<style scoped>
+
+</style>

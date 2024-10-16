@@ -75,16 +75,36 @@ nav ul li a:hover {
         <li><router-link to="/movies">Movies</router-link></li>
         <li><router-link to="/actors">Actors</router-link></li>
         <li><router-link to="/categories">Categories</router-link></li>
-        <li class="profile">
+        <li class="profile" v-if="token">
           <router-link to="/profile">Edit Profile</router-link> /
-          <router-link to="/logout">Logout</router-link>
-          <router-link to="/login">login</router-link>
+          <a href="#" @click.prevent="logout">Logout</a>
+        </li>
+        <li v-else>
+          <router-link to="/login">Login</router-link>
         </li>
       </ul>
     </nav>
   </div>
 </template>
 
-<style scoped>
+<script>
+export default {
+  data() {
+    return {
+      token: localStorage.getItem('token') // Récupère le token depuis le localStorage
+    };
+  },
+  methods: {
+    logout() {
+      // Supprime le token du localStorage
+      localStorage.removeItem('token');
+      
+      // Met à jour le token dans les données du composant
+      this.token = null;
 
-</style>
+      // Redirige vers la page de login
+      this.$router.push('/login');
+    }
+  }
+};
+</script>

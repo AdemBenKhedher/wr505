@@ -1,11 +1,11 @@
 import Vue from 'vue';
 import Router from 'vue-router';
-import Home from '/src/components/Home.vue'; 
-import Movies from '/src/components/Movies.vue';
-import Actors from '/src/components/Actors.vue';
-import Categories from '/src/components/Categories.vue';
-import Login from '/src/components/Login.vue';
-import Profile from '/src/components/Profile.vue';
+import Home from '/src/views/Home.vue'; 
+import Movies from '/src/views/Movies.vue';
+import Actors from '/src/views/Actors.vue';
+import Categories from '/src/views/Categories.vue';
+import Login from '/src/views/Login.vue';
+import Profile from '/src/views/Profile.vue';
 import ActorDtails from '/src/components/ActorDetails.vue';
 import MovieDetails from '/src/components/MovieDetails.vue';
 

@@ -1,7 +1,24 @@
 
-
+<template>
+  <div>
+    <h2>Liste des Acteurs</h2>
+    <div v-if="errorMessage">{{ errorMessage }}</div>
+    <ul v-else>
+        <ActorCard
+        v-for="actor in actors"
+        :key="actor.id"
+        :actor="actor"
+      />
+      
+    </ul>
+  </div>
+</template>
 <script>
+import ActorCard from "@/components/ActorCard.vue";
 export default {
+  components: {
+    ActorCard
+  },
   data() {
     return {
       actors: [], // pour stocker les acteurs récupérés
@@ -50,21 +67,4 @@ h2 {
   margin-bottom: 20px;
 }
 </style>
-<template>
-  <div>
-    <h2>Liste des Acteurs</h2>
-    <div v-if="errorMessage">{{ errorMessage }}</div>
-    <ul v-else>
-      <li v-for="actor in actors" :key="actor.id">
-        <p>Prénom : {{ actor.firstname }}</p>
-        <p>Nom : {{ actor.lastname }}</p>
-        <p>Date de naissance : {{ actor.dob }}</p>
-        <p>Nationalité : {{ actor.nationalty }}</p>
-        <p>Récompenses : {{ actor.awards }}</p>
-        <button @click="goToDetails(actor.id)">Voir détails</button>
 
-        <img :src="actor.media" alt="Image de l'acteur" />
-      </li>
-    </ul>
-  </div>
-</template>
