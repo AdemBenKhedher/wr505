@@ -11,7 +11,7 @@
       <p>Réalisateur : {{ movie.director }}</p>
       <p>Note : {{ movie.rating }}</p>
       <img :src="movie.media" alt="Affiche du film" />
-      <!-- Affichage des acteurs associés -->
+      
       <div v-if="actors.length">
         <h3>Acteurs associés :</h3>
         <ul>
@@ -35,12 +35,12 @@ export default {
   },
   data() {
     return {
-      movie: {}, // Détails du film
-      actors: [], // Détails des acteurs associés
+      movie: {}, 
+      actors: [],
     };
   },
   created() {
-    const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
+    const token = localStorage.getItem('token'); 
     const movieId = this.$route.params.id;
     const requestOptions = {
       method: "GET",
@@ -50,14 +50,12 @@ export default {
       },
     };
 
-    // Récupérer les détails du film
     fetch(`http://symfony.mmi-troyes.fr:8319/api/movies/${movieId}`, requestOptions)
       .then((response) => response.json())
       .then((result) => {
-        this.movie = result; // Stocker les détails du film
+        this.movie = result;
         console.log("Détails du film récupérés :", this.movie);
 
-        // Appeler la méthode pour récupérer les acteurs associés
         this.fetchMovieActors(this.movie.actors);
       })
       .catch((error) => {
@@ -68,9 +66,8 @@ export default {
     goToDetails(id) {
       this.$router.push({ name: 'actor-details', params: { id } });
     },
-    // Récupérer les acteurs associés au film
     fetchMovieActors(actorIds) {
-      const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
+      const token = localStorage.getItem('token'); 
       const requests = actorIds.map(actorId => {
         return fetch(`http://symfony.mmi-troyes.fr:8319/api/actors/${actorId.split('/').pop()}`,{headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -78,10 +75,9 @@ export default {
           .then(res => res.json());
       });
 
-      // Utiliser Promise.all pour attendre que toutes les requêtes soient terminées
       Promise.all(requests)
         .then(actors => {
-          this.actors = actors; // Stocker les détails des acteurs
+          this.actors = actors; 
           console.log("Acteurs associés récupérés :", this.actors);
         })
         .catch(error => {

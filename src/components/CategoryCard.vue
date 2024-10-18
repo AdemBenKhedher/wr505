@@ -7,7 +7,7 @@
   
   <script>
   export default {
-    name: "CategoryCard", // Assurez-vous que le composant a un nom unique
+    name: "CategoryCard", 
     props: {
       category: {
         type: Object,

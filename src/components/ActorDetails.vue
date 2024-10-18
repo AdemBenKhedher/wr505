@@ -33,12 +33,12 @@ export default {
   data() {
     return {
       actor: {},
-      actorMovies: [], // Pour stocker les films associés
+      actorMovies: [], 
     };
   },
   created() {
-    const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
-    const actorId = this.$route.params.id; // Récupérer l'ID de l'acteur
+    const token = localStorage.getItem('token'); 
+    const actorId = this.$route.params.id; 
     const requestOptions = {
       method: "GET",
       redirect: "follow",
@@ -47,15 +47,15 @@ export default {
       },
     };
 
-    // Récupérer les détails de l'acteur
+    
     fetch(`http://symfony.mmi-troyes.fr:8319/api/actors/${actorId}`, requestOptions)
       .then((response) => response.json())
       .then((result) => {
-        this.actor = result; // Stocker les détails de l'acteur
+        this.actor = result; 
         console.log("Détails de l'acteur récupérés :", this.actor);
 
-        // Récupérer les films associés
-        this.fetchActorMovies(this.actor.movies); // Appeler la méthode pour récupérer les films
+        
+        this.fetchActorMovies(this.actor.movies); 
       })
       .catch((error) => {
         console.error("Erreur lors de la récupération des détails de l'acteur :", error);
@@ -67,13 +67,13 @@ export default {
       this.$router.push({ name: 'movie-details', params: { id } });
     },
     fetchActorMovies(movieIds) {
-      const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
+      const token = localStorage.getItem('token'); 
       const requests = movieIds.map(movieId => {
 
         return fetch(`http://symfony.mmi-troyes.fr:8319/api/movies/${movieId.split('/').pop()}`, {headers: {
         Authorization: `Bearer ${localStorage.getItem("token")}`,
       },}
-      ) // On récupère l'ID à partir de l'URL
+      ) 
           .then(res => res.json());
       },
 
@@ -81,7 +81,7 @@ export default {
 
       Promise.all(requests)
         .then(movies => {
-          this.actorMovies = movies; // Stocker les films associés
+          this.actorMovies = movies; 
           console.log("Films associés récupérés :", this.actorMovies);
         })
         .catch(error => {

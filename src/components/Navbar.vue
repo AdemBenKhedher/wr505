@@ -91,18 +91,15 @@ nav ul li a:hover {
 export default {
   data() {
     return {
-      token: localStorage.getItem('token') // Récupère le token depuis le localStorage
+      token: localStorage.getItem('token') 
     };
   },
   methods: {
     logout() {
-      // Supprime le token du localStorage
       localStorage.removeItem('token');
       
-      // Met à jour le token dans les données du composant
       this.token = null;
 
-      // Redirige vers la page de login
       this.$router.push('/login');
     }
   }

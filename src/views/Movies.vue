@@ -2,10 +2,9 @@
   <div>
     <h2>Liste des Films</h2>
 
-    <!-- Display error message if any -->
+    
     <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
 
-    <!-- Search input (no button needed) -->
     <label for="search">Rechercher :</label>
     <input 
       id="search" 
@@ -14,14 +13,20 @@
       placeholder="Entrez le nom d'un film" 
     />
 
-    <!-- Movie list -->
-    <ul v-if="filteredMovies.length">
-      <MovieCard v-for="movie in filteredMovies" :key="movie.id" :movie="movie" />
+   
+    <ul v-if="paginatedMovies.length">
+      <MovieCard v-for="movie in paginatedMovies" :key="movie.id" :movie="movie" />
     </ul>
 
-    <!-- No movies found message -->
+   
     <div v-else>
       <p>Aucun film trouvé.</p>
+    </div>
+
+    <div class="pagination" v-if="totalPages > 1">
+      <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">Précédent</button>
+      <span>Page {{ currentPage }} sur {{ totalPages }}</span>
+      <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">Suivant</button>
     </div>
   </div>
 </template>
@@ -35,38 +40,52 @@ export default {
   },
   data() {
     return {
-      movies: [], // Pour stocker les films récupérés
-      errorMessage: null, // Pour gérer et afficher une erreur potentielle
-      query: '', // Pour la recherche de film
+      movies: [], 
+      errorMessage: null, 
+      query: '',
+      currentPage: 1,
+      limit: 15 
     };
   },
   computed: {
-    // Computed property to filter movies based on the search query
+
     filteredMovies() {
-      if (!this.query) return this.movies; // Si la requête est vide, retourner tous les films
+      if (!this.query) return this.movies;
       return this.movies.filter(movie => 
         movie.title && movie.title.toLowerCase().includes(this.query.toLowerCase())
-      ); // Filtrer les films en fonction de la requête
+      );
+    },
+    totalPages() {
+      return Math.ceil(this.filteredMovies.length / this.limit);
+    },
+    paginatedMovies() {
+      const start = (this.currentPage - 1) * this.limit;
+      return this.filteredMovies.slice(start, start + this.limit);
     }
   },
   methods: {
+    goToPage(page) {
+      if (page < 1 || page > this.totalPages) return; 
+      this.currentPage = page; 
+    },
     fetchMovies() {
-      const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
+      const token = localStorage.getItem('token'); 
       const requestOptions = {
         method: "GET",
         headers: { 
           'Authorization': `Bearer ${token}`
-        }
+        },
+        
       };
       fetch("http://symfony.mmi-troyes.fr:8319/api/movies", requestOptions)
         .then(response => {
           if (!response.ok) {
             throw new Error('Network response was not ok');
           }
-          return response.json(); // Transformer la réponse en JSON
+          return response.json();
         })
         .then(result => {
-          this.movies = result.member || []; // Assurez-vous que `result.member` existe et est un tableau
+          this.movies = result.member || []; 
           console.log("Films récupérés :", this.movies);
         })
         .catch(error => {
@@ -76,7 +95,7 @@ export default {
     }
   },
   created() {
-    this.fetchMovies(); // Appeler la méthode lorsque le composant est monté
+    this.fetchMovies();
   }
 };
 </script>

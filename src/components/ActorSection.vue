@@ -20,17 +20,17 @@ export default {
   }, 
   data() {
     return {
-      actors: [], // pour stocker les acteurs récupérés
-      errorMessage: null // pour gérer et afficher une erreur potentielle
+      actors: [], 
+      errorMessage: null 
     };
   },
   computed: {
     recentActors() {
     const sortedActors = this.actors
-      .filter(actor => actor.id != null) // Filtrer les acteurs avec un ID valide
-      .sort((a, b) => b.id - a.id); // Trie par ID décroissant
+      .filter(actor => actor.id != null) 
+      .sort((a, b) => b.id - a.id); 
 
-    // Retourne les 4 premiers acteurs après le tri
+    
     return sortedActors.slice(0, 4);
     }
   },
@@ -39,7 +39,7 @@ export default {
       this.$router.push({ name: 'actor-details', params: { id } });
     },
     fetchActors() {
-      const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
+      const token = localStorage.getItem('token');
 
       const requestOptions = {
         method: "GET",
@@ -50,9 +50,9 @@ export default {
       };
 
       fetch("http://symfony.mmi-troyes.fr:8319/api/actors", requestOptions)
-        .then((response) => response.json()) // Transformer la réponse en JSON
+        .then((response) => response.json()) 
         .then((result) => {
-          this.actors = result.member; // Stocker les acteurs dans le tableau 'actors'
+          this.actors = result.member;
           console.log("Acteurs récupérés :", this.actors);
         })
         .catch((error) => {
@@ -62,7 +62,7 @@ export default {
     }
   },
   created() {
-    this.fetchActors(); // Appeler la méthode lorsque le composant est monté
+    this.fetchActors(); 
   }
 };
 </script>

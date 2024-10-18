@@ -2,10 +2,8 @@
   <div>
     <h2>Liste des Acteurs</h2>
 
-    <!-- Display error message if any -->
     <div v-if="errorMessage">{{ errorMessage }}</div>
 
-    <!-- Search input (no button needed) -->
     <label for="search">Rechercher :</label>
     <input 
       id="search" 
@@ -14,18 +12,22 @@
       placeholder="Entrez le nom d'un Acteur" 
     />
 
-    <!-- Actor list -->
-    <ul v-if="filteredActors.length">
+    <div class="actor-grid">
       <ActorCard
-        v-for="actor in filteredActors"
+        v-for="actor in paginatedActors"
         :key="actor.id"
         :actor="actor"
       />
-    </ul>
+    </div>
 
-    <!-- No actors found message -->
-    <div v-else>
+    <div v-if="paginatedActors.length === 0 && !errorMessage">
       <p>Aucun acteur trouvé.</p>
+    </div>
+
+    <div class="pagination" v-if="totalPages > 1">
+      <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">Précédent</button>
+      <span>Page {{ currentPage }} sur {{ totalPages }}</span>
+      <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">Suivant</button>
     </div>
   </div>
 </template>
@@ -39,45 +41,58 @@ export default {
   },
   data() {
     return {
-      actors: [], // To store fetched actors
-      errorMessage: null, // To handle any error messages
-      query: "", // Search query for filtering actors
+      actors: [], 
+      errorMessage: null, 
+      query: "", 
+      currentPage: 1,
+      limit: 4
     };
   },
   computed: {
-    // Computed property to filter actors based on search query
+   
     filteredActors() {
-      if (!this.query) return this.actors; // If query is empty, return all actors
+      if (!this.query) return this.actors; 
       return this.actors.filter(actor =>
         actor.lastname && actor.lastname.toLowerCase().includes(this.query.toLowerCase())
-      ); // Filter actors based on the query
+      );
+    },
+    totalPages() {
+      return Math.ceil(this.filteredActors.length / this.limit); 
+    },
+    paginatedActors() {
+      const start = (this.currentPage - 1) * this.limit;
+      return this.filteredActors.slice(start, start + this.limit); 
     }
   },
   methods: {
     fetchActors() {
-      const token = localStorage.getItem('token'); // Get token from localStorage
+      const token = localStorage.getItem('token'); 
       const requestOptions = {
         method: "GET",
         redirect: "follow",
         headers: { 
-          Authorization: `Bearer ${token}` // Add Authorization header
+          Authorization: `Bearer ${token}` 
         }
       };
 
       fetch("http://symfony.mmi-troyes.fr:8319/api/actors", requestOptions)
-        .then(response => response.json()) // Parse the response as JSON
+        .then(response => response.json()) 
         .then(result => {
-          this.actors = result.member; // Store fetched actors
-          console.log("Acteurs récupérés :", this.actors); // Log the actors
+          this.actors = result.member;
+          console.log("Acteurs récupérés :", this.actors); 
         })
         .catch(error => {
           console.error("Erreur lors de la récupération des acteurs :", error);
-          this.errorMessage = "Impossible de récupérer les acteurs."; // Set error message
+          this.errorMessage = "Impossible de récupérer les acteurs."; 
         });
+    },
+    goToPage(page) {
+      if (page < 1 || page > this.totalPages) return; 
+      this.currentPage = page; 
     }
   },
   created() {
-    this.fetchActors(); // Fetch actors when the component is mounted
+    this.fetchActors();
   }
 };
 </script>
@@ -87,8 +102,11 @@ ul {
   list-style-type: none;
 }
 
-li {
-  margin-bottom: 10px;
+.actor-grid {
+  display: grid; /* Enable grid layout */
+  grid-template-columns: repeat(4, 1fr); /* 4 columns */
+  gap: 16px; /* Space between grid items */
+  margin-bottom: 20px; /* Space below the grid */
 }
 
 h2 {
@@ -100,5 +118,15 @@ input {
   margin-bottom: 20px;
   padding: 8px;
   font-size: 16px;
+}
+
+.pagination {
+  margin-top: 20px; /* Space above pagination buttons */
+  display: flex;
+  justify-content: center; /* Center pagination buttons */
+}
+
+button {
+  margin: 0 5px; /* Space between buttons */
 }
 </style>

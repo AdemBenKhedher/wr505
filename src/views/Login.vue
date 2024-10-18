@@ -26,7 +26,7 @@ export default {
     return {
       username: '',
       password: '',
-      error: null, // Pour afficher les erreurs d'authentification
+      error: null,
     }
   },
   methods: {
@@ -38,22 +38,22 @@ export default {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            email: this.username, // Assurez-vous que ce champ correspond à ce que Symfony attend (email ou username)
+            email: this.username,
             password: this.password,
           }),
         });
 
         if (!response.ok) {
-          throw new Error('Erreur de connexion'); // Gère les erreurs HTTP
+          throw new Error('Erreur de connexion'); 
         }
 
         const data = await response.json();
         console.log('Connexion réussie, token JWT:', data.token);
 
-        // Stocker le token JWT localement (par exemple, dans le localStorage)
+        
         localStorage.setItem('token', data.token);
 
-        // Rediriger l'utilisateur vers une autre page après le login, par exemple :
+        
         this.$router.push('/movies');
 
       } catch (error) {

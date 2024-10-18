@@ -16,17 +16,16 @@ export default {
   },
   data() {
     return {
-      movies: [], // Pour stocker les movies récupérés
-      errorMessage: null // Pour gérer et afficher une erreur potentielle
+      movies: [], 
+      errorMessage: null 
     };
   },
   computed: {
     recentMovies() {
       const sortedMovies = this.movies
-        .filter(movie => movie.id != null) // Filtrer les movies avec un ID valide
-        .sort((a, b) => b.id - a.id); // Trie par ID décroissant
+        .filter(movie => movie.id != null) 
+        .sort((a, b) => b.id - a.id); 
 
-      // Retourne les 4 premiers movies après le tri
       return sortedMovies.slice(0, 4);
     }
   },
@@ -35,7 +34,7 @@ export default {
       this.$router.push({ name: 'movie-details', params: { id } });
     },
     fetchMovies() {
-      const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
+      const token = localStorage.getItem('token'); 
       const requestOptions = {
         method: "GET",
         redirect: "follow",
@@ -45,9 +44,9 @@ export default {
       };
 
       fetch("http://symfony.mmi-troyes.fr:8319/api/movies", requestOptions)
-        .then((response) => response.json()) // Transformer la réponse en JSON
+        .then((response) => response.json()) 
         .then((result) => {
-          this.movies = result.member; // Stocker les movies dans le tableau 'movies'
+          this.movies = result.member; 
           console.log("movies récupérés :", this.movies);
         })
         .catch((error) => {
@@ -57,7 +56,7 @@ export default {
     }
   },
   created() {
-    this.fetchMovies(); // Appeler la méthode lorsque le composant est monté
+    this.fetchMovies(); 
   }
 };
 </script>

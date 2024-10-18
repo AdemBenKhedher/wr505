@@ -1,6 +1,5 @@
 <template>
   <div class="movie-card">
-    <!-- Condition pour vérifier si le média existe -->
     <img v-if="movie.media" :src="movie.media" :alt="movie.title" class="movie-poster" />
     <div v-else class="movie-poster"></div>
 
@@ -12,7 +11,6 @@
 
       <div class="movie-details">
         <div class="categories">
-          <!-- Boucle sur les catégories -->
           <span
             v-for="category in movie.categories"
             :key="category.id"
@@ -23,7 +21,6 @@
         </div>
 
         <div class="actors">
-          <!-- Boucle sur les acteurs -->
           <span class="actor-tag" v-for="actor in movie.actors" :key="actor.id">
             {{ actor.firstname }} {{ actor.lastname }}
           </span>
