@@ -54,7 +54,7 @@ export default {
         localStorage.setItem('token', data.token);
 
         // Rediriger l'utilisateur vers une autre page après le login, par exemple :
-        this.$router.push('/dashboard');
+        this.$router.push('/movies');
 
       } catch (error) {
         console.error('Erreur lors de la connexion:', error);

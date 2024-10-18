@@ -28,6 +28,7 @@
 
 <script>
 import ActorCard from "@/components/ActorCard.vue";
+import { h } from "vue";
 export default {
   components: {
     ActorCard
@@ -39,10 +40,14 @@ export default {
     };
   },
   created() {
+    const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
     const movieId = this.$route.params.id;
     const requestOptions = {
       method: "GET",
-      redirect: "follow"
+      redirect: "follow",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     };
 
     // Récupérer les détails du film
@@ -65,8 +70,11 @@ export default {
     },
     // Récupérer les acteurs associés au film
     fetchMovieActors(actorIds) {
+      const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
       const requests = actorIds.map(actorId => {
-        return fetch(`http://symfony.mmi-troyes.fr:8319/api/actors/${actorId.split('/').pop()}`)
+        return fetch(`http://symfony.mmi-troyes.fr:8319/api/actors/${actorId.split('/').pop()}`,{headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        }})
           .then(res => res.json());
       });
 

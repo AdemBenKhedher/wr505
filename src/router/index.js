@@ -24,7 +24,7 @@ const router = new Router({
     { path: '/profile', component: Profile },
     { path: '*', redirect: '/' } ,
     { path: '/actor/:id', component: ActorDtails, name: 'actor-details' },
-    { path: '/movie/:id', component: MovieDetails , name: 'movie-details'}
+    { path: '/movie/:id', component: MovieDetails , name: 'movie-details'},
   ]
 });
 

@@ -35,9 +35,13 @@ export default {
       this.$router.push({ name: 'movie-details', params: { id } });
     },
     fetchMovies() {
+      const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
       const requestOptions = {
         method: "GET",
-        redirect: "follow"
+        redirect: "follow",
+        headers: { 
+          'Authorization': `Bearer ${token}`
+        }
       };
 
       fetch("http://symfony.mmi-troyes.fr:8319/api/movies", requestOptions)

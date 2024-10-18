@@ -7,7 +7,7 @@
           <span>Date de naissance : {{ actor.dob }}</span> |
           <span>Nationalité : {{ actor.nationality }}</span>
         </p>
-        <p class="actor-awards">Récompenses : {{ actor.awards }}</p>
+        <p class="actor-awards">Awards : {{ actor.awards }}</p>
         <button class="details-button" @click="goToDetails(actor.id)">Voir détails</button>
       </div>
     </div>

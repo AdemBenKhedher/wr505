@@ -8,6 +8,7 @@
       <h2 class="movie-title">{{ movie.title }}</h2>
       <h2 class="movie-director">Directed by : {{ movie.director }}</h2>
       <p class="movie-description">{{ movie.description }}</p>
+      <button @click="goToDetails(movie.id)" class="btn btn-primary">More details</button>
 
       <div class="movie-details">
         <div class="categories">

@@ -1,16 +1,25 @@
 <template>
   <div>
     <h2>Liste des Films</h2>
-    <div v-if="errorMessage">{{ errorMessage }}</div>
-    
-    <form @submit.prevent="searchMovies">
-      <label for="search">Rechercher :</label>
-      <input id="search" v-model="query" type="text" placeholder="Entrez le nom d'un film" />
-    </form>
 
-    <ul v-if="movies.length">
+    <!-- Display error message if any -->
+    <div v-if="errorMessage" class="error">{{ errorMessage }}</div>
+
+    <!-- Search input (no button needed) -->
+    <label for="search">Rechercher :</label>
+    <input 
+      id="search" 
+      v-model="query" 
+      type="text" 
+      placeholder="Entrez le nom d'un film" 
+    />
+
+    <!-- Movie list -->
+    <ul v-if="filteredMovies.length">
       <MovieCard v-for="movie in filteredMovies" :key="movie.id" :movie="movie" />
     </ul>
+
+    <!-- No movies found message -->
     <div v-else>
       <p>Aucun film trouvé.</p>
     </div>
@@ -32,38 +41,38 @@ export default {
     };
   },
   computed: {
+    // Computed property to filter movies based on the search query
     filteredMovies() {
       if (!this.query) return this.movies; // Si la requête est vide, retourner tous les films
       return this.movies.filter(movie => 
-        movie.title.toLowerCase().includes(this.query.toLowerCase())
+        movie.title && movie.title.toLowerCase().includes(this.query.toLowerCase())
       ); // Filtrer les films en fonction de la requête
     }
   },
   methods: {
     fetchMovies() {
+      const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
       const requestOptions = {
         method: "GET",
-        redirect: "follow"
+        headers: { 
+          'Authorization': `Bearer ${token}`
+        }
       };
       fetch("http://symfony.mmi-troyes.fr:8319/api/movies", requestOptions)
-        .then((response) => {
+        .then(response => {
           if (!response.ok) {
             throw new Error('Network response was not ok');
           }
           return response.json(); // Transformer la réponse en JSON
         })
-        .then((result) => {
-          this.movies = result.member; // Assurez-vous que `result.member` existe et est un tableau
+        .then(result => {
+          this.movies = result.member || []; // Assurez-vous que `result.member` existe et est un tableau
           console.log("Films récupérés :", this.movies);
         })
-        .catch((error) => {
+        .catch(error => {
           console.error("Erreur lors de la récupération des films :", error);
           this.errorMessage = "Impossible de récupérer les films.";
         });
-    },
-    searchMovies() {
-      // Optionnel : Ici, vous pouvez ajouter une logique si nécessaire lors de la recherche
-      console.log(`Recherche pour: ${this.query}`);
     }
   },
   created() {
@@ -73,4 +82,7 @@ export default {
 </script>
 
 <style scoped>
+.error {
+  color: red; /* Couleur pour les messages d'erreur */
+}
 </style>

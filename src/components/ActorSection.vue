@@ -39,9 +39,14 @@ export default {
       this.$router.push({ name: 'actor-details', params: { id } });
     },
     fetchActors() {
+      const token = localStorage.getItem('token'); // Récupérer le token depuis le localStorage
+
       const requestOptions = {
         method: "GET",
-        redirect: "follow"
+        redirect: "follow",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       };
 
       fetch("http://symfony.mmi-troyes.fr:8319/api/actors", requestOptions)
