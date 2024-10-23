@@ -9,8 +9,6 @@
         </p>
         <p class="actor-awards">Awards : {{ actor.awards }}</p>
         <button class="details-button" @click="goToDetails(actor.id)">Voir détails</button>
-        <button @click="$emit('edit')">Modifier</button>
-        <button @click="$emit('delete')">Supprimer</button>
       </div>
     </div>
   </template>

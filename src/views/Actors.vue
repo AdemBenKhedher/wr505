@@ -1,85 +1,159 @@
 <template>
-  <div class="actor-list">
+  <div>
     <h2>Liste des Acteurs</h2>
+
+    <div v-if="errorMessage">{{ errorMessage }}</div>
+
+    <!-- Input de recherche -->
+    <label for="search">Rechercher :</label>
+    <input 
+      id="search" 
+      v-model="query" 
+      type="text" 
+      placeholder="Entrez le nom d'un Acteur" 
+    />
     
-    <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+    <!-- Bouton Ajouter un Acteur -->
+    <button @click="showModal = true; resetActor()">Ajouter un Acteur</button>
     
-    <div class="search-add">
-      <div class="search-bar">
-        <label for="search">Rechercher :</label>
-        <input
-          id="search"
-          v-model="query"
-          type="text"
-          placeholder="Entrez le nom d'un Acteur"
-        />
+    <!-- Modal pour Ajouter/Modifier un Acteur -->
+    <div class="modal" v-if="showModal">
+      <div class="modal-content">
+        <span class="close" @click="closeModal">&times;</span>
+        <h2>{{ isEditMode ? 'Modifier' : 'Ajouter' }} un Acteur</h2>
+        <form @submit.prevent="isEditMode ? updateActor() : addActor()">
+          <div>
+            <label for="actor-lastname">Nom de famille :</label>
+            <input 
+              type="text" 
+              id="actor-lastname" 
+              v-model="actor.lastname" 
+              required 
+            />
+          </div>
+          <div>
+            <label for="actor-firstname">Prénom :</label>
+            <input 
+              type="text" 
+              id="actor-firstname" 
+              v-model="actor.firstname" 
+              required 
+            />
+          </div>
+          <div>
+            <label for="actor-dob">Date de naissance :</label>
+            <input 
+              type="date" 
+              id="actor-dob" 
+              v-model="actor.dob" 
+              required 
+            />
+
+            <label for="actor-doD">Date de mort :</label>
+            <input 
+              type="date" 
+              id="actor-dod" 
+              v-model="actor.dod" 
+               
+            />
+          </div>
+          <div>
+            <label for="actor-nationalty">Nationalité :</label>
+            <input 
+              type="text" 
+              id="actor-nationalty" 
+              v-model="actor.nationalty" 
+              required 
+            />
+          </div>
+          <div>
+            <label for="actor-awards">Récompenses :</label>
+            <input 
+              type="number" 
+              id="actor-awards" 
+              v-model="actor.awards" 
+              required 
+            />
+          </div>
+          <div>
+            <label for="actor-gender">Genre :</label>
+            <select id="actor-gender" v-model="actor.gender" required>
+              <option value="male">Homme</option>
+              <option value="female">Femme</option>
+              <option value="other">Autre</option>
+            </select>
+          </div>
+          <div>
+            <button type="submit">{{ isEditMode ? 'Modifier' : 'Ajouter' }}</button>
+          </div>
+        </form>
       </div>
-      <div>
-    <!-- Votre contenu principal -->
-    <button @click="showModal = true">Add Actor</button>
-
-    <Teleport to="body">
-      <ActorModal v-if="showModal" @addActor="handleAddActor" @close="showModal = false" />
-    </Teleport>
-  </div>    </div>
-    
-
-    
-    <div class="actor-grid">
-      <ActorCard
-        v-for="actor in paginatedActors"
-        :key="actor.id"
-        :actor="actor"
-        @edit="showEditModal(actor)"
-        @delete="deleteActor(actor.id)"
-      />
     </div>
-    
-    <div v-if="paginatedActors.length === 0 && !errorMessage" class="no-results">
+
+    <!-- Grid des acteurs -->
+    <div class="actor-grid">
+      <div v-for="actor in paginatedActors" :key="actor.id" class="actor-item">
+        <ActorCard :actor="actor" />
+
+        <!-- Boutons Modifier/Supprimer affichés au hover -->
+        <div class="actor-item-buttons">
+          <button @click="editActor(actor)">Modifier</button>
+          <button @click="confirmDeleteActor(actor.id)">Supprimer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Si aucun acteur n'est trouvé -->
+    <div v-if="paginatedActors.length === 0 && !errorMessage">
       <p>Aucun acteur trouvé.</p>
     </div>
-    
+
+    <!-- Pagination -->
     <div class="pagination" v-if="totalPages > 1">
       <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1">Précédent</button>
       <span>Page {{ currentPage }} sur {{ totalPages }}</span>
       <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages">Suivant</button>
     </div>
-    
-    <ActorModal
-      v-if="isModalVisible"
-      :actor="selectedActor"
-      @close="closeModal"
-      @save="saveActor"
-    />
   </div>
 </template>
 
 
 
+
 <script>
 import ActorCard from "@/components/ActorCard.vue";
-import ActorModal from "@/components/ActorModal.vue"; // Modal for add/edit
 
 export default {
   components: {
-    ActorCard,
-    ActorModal
+    ActorCard
   },
   data() {
     return {
-      actors: [], 
+      actors: [
+      
+      ], 
+      actor: {
+        lastname: '',
+        firstname: '',
+        dob: '',
+        dod: '',
+        nationalty: '',
+        awards: 0,
+        gender: '',
+        created_at: '', 
+        
+      },
+      showModal: false,
+      isEditMode: false,
+      selectedActorId: null,
       errorMessage: null, 
       query: "", 
       currentPage: 1,
-      limit: 8,
-      isModalVisible: false,  // Controls modal visibility
-      selectedActor: null,  // Actor data for edit
-      showAddModal: false, 
-      showModal: false,
-      // Show add modal
+      limit: 4
     };
   },
   computed: {
+   
     filteredActors() {
       if (!this.query) return this.actors; 
       return this.actors.filter(actor =>
@@ -95,15 +169,11 @@ export default {
     }
   },
   methods: {
-    handleAddActor(actor) {
-      // Traitez les données de l'acteur ici
-      console.log('New actor:', actor)
-      this.showModal = false
-    },
     fetchActors() {
       const token = localStorage.getItem('token'); 
       const requestOptions = {
         method: "GET",
+        redirect: "follow",
         headers: { 
           Authorization: `Bearer ${token}` 
         }
@@ -113,6 +183,7 @@ export default {
         .then(response => response.json()) 
         .then(result => {
           this.actors = result.member;
+          console.log("Acteurs récupérés :", this.actors); 
         })
         .catch(error => {
           console.error("Erreur lors de la récupération des acteurs :", error);
@@ -123,94 +194,134 @@ export default {
       if (page < 1 || page > this.totalPages) return; 
       this.currentPage = page; 
     },
-    showAddModal() {
-      this.selectedActor = null; // Reset to add mode
-      this.isModalVisible = true;
-    },
-    showEditModal(actor) {
-      this.selectedActor = actor; // Edit mode with selected actor
-      this.isModalVisible = true;
-    },
-    closeModal() {
-      this.isModalVisible = false; // Close modal
-    },
-    saveActor(actor) {
-      if (this.selectedActor) {
-        // Update actor
-        this.updateActor(actor);
-      } else {
-        // Create new actor
-        this.addActor(actor);
-      }
-    },
-    addActor(actor) {
+    updateActor() {
+    const token = localStorage.getItem('token');
     const myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-    myHeaders.append("Authorization", `Bearer ${localStorage.getItem('token')}`);
+    myHeaders.append("Authorization", `Bearer ${token}`);
+    
+    function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
 
-    const raw = JSON.stringify({
-      lastname: actor.lastname,
-      firstname: actor.firstname,
-      dob: actor.dob,
-      nationalty: actor.nationalty,
-      awards: actor.awards,
-      bio: actor.bio,  // Added bio field
-      gender: actor.gender
-    });
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+    const updatedActor = {
+      lastname: this.actor.lastname,
+      firstname: this.actor.firstname,
 
-    const requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body: raw,
-      redirect: "follow"
+      nationalty: this.actor.nationalty,
+      awards: parseInt(this.actor.awards, 10),
+      gender: this.actor.gender,
     };
-
-    fetch("http://symfony.mmi-troyes.fr:8319/api/actors", requestOptions)
-      .then((response) => response.json())  // Parse the response as JSON
-      .then((result) => {
-        console.log("Actor added:", result);  // Check if the actor is added
-        this.actors.push(result);  // Update the actor list
-        this.closeModal();  // Close modal after success
+    console.log('Payload update being sent:', updatedActor);
+    const requestOptions = {
+      method: "PATCH",
+      headers: myHeaders,
+      body: JSON.stringify(updatedActor),
+    };
+    fetch(`http://symfony.mmi-troyes.fr:8319/api/actors/${this.actor.id}`, requestOptions)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur lors de la modification de l\'acteur');
+        }
+        return response.json();
       })
-      .catch((error) => {
-        console.error("Error adding actor:", error);
+      .then(result => {
+        console.log("Acteur modifié :", result);
+        this.resetActor(); // Réinitialiser les champs
+        this.fetchActors(); // Rafraîchir la liste des acteurs
+        this.closeModal(); // Fermer la modal
+        this.isEditMode = false; // Désactiver le mode édition
+      })
+      .catch(error => {
+        console.error("Erreur lors de la modification de l'acteur :", error);
+        this.errorMessage = "Erreur lors de la modification de l'acteur.";
       });
   },
-    updateActor(actor) {
-      const token = localStorage.getItem('token');
-      fetch(`http://symfony.mmi-troyes.fr:8319/api/actors/${actor.id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          lastname: actor.lastname,
-          firstname: actor.firstname,
-          dob: actor.dob,
-          nationalty: actor.nationalty,
-          awards: actor.awards,
-          bio: actor.bio,  // Added bio field
-          gender: actor.gender
-        })
-      })
-      .then(() => {
-        this.fetchActors(); // Refresh the list
-        this.closeModal();
-      });
+  editActor(actor) {
+    this.isEditMode = true; // On active le mode édition
+    this.actor = { ...actor }; // On pré-remplit la modal avec les informations de l'acteur
+    this.showModal = true; // On affiche la modal
+    this.selectedActorId = actor.id; // On stocke l'ID de l'acteur en cours d'édition
+  },
+    addActor() {
+  const token = localStorage.getItem('token');
+  const myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", `Bearer ${token}`);
+
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+  const newActor = {
+    lastname: this.actor.lastname,
+    firstname: this.actor.firstname,
+    dob: this.actor.dob, 
+    dod: this.actor.dod,
+    nationalty: this.actor.nationalty,
+    awards: parseInt(this.actor.awards, 10),
+    gender: this.actor.gender,
+    created_at: formatDate(new Date()),};
+
+  console.log('Payload being sent:', newActor);
+
+  const requestOptions = {
+    method: "POST",
+    headers: myHeaders,
+    body: JSON.stringify(newActor),
+  };
+
+  fetch("http://symfony.mmi-troyes.fr:8319/api/actors", requestOptions)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'ajout de l\'acteur');
+      }
+      return response.json();
+    })
+    .then(result => {
+      console.log("Acteur ajouté :", result);
+      this.resetActor();
+      this.fetchActors();
+      this.closeModal();
+    })
+    .catch(error => {
+      console.error("Erreur lors de l'ajout de l'acteur :", error);
+    });
+},
+  resetActor() {
+      this.actor = {
+        lastname: '',
+        firstname: '',
+        dob: '',
+        dod: '',
+        nationalty: '',
+        awards: 0,
+        gender: '',
+        created_at: '',
+      };
     },
-    deleteActor(actorId) {
-      const token = localStorage.getItem('token');
-      fetch(`http://symfony.mmi-troyes.fr:8319/api/actors/${actorId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      .then(() => {
-        this.actors = this.actors.filter(actor => actor.id !== actorId); // Remove from list
-      });
-    }
+    
+    closeModal() {
+      this.showModal = false; 
+      this.resetActor(); 
+      this.isEditMode = false;
+    },
+    
+
+
   },
   created() {
     this.fetchActors();
@@ -218,168 +329,179 @@ export default {
 };
 </script>
 
-
-
 <style scoped>
-.actor-list {
-  font-family: Arial, sans-serif;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-h2 {
-  color: #333;
-  margin-bottom: 20px;
-}
-
-.error-message {
-  color: #ff0000;
-  margin-bottom: 10px;
-}
-
-.search-add {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.search-bar {
-  display: flex;
-  align-items: center;
-}
-
-.search-bar label {
-  margin-right: 10px;
-}
-
-.search-bar input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-.add-button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.add-button:hover {
-  background-color: #45a049;
+ul {
+  list-style-type: none;
 }
 
 .actor-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
+  display: grid; /* Enable grid layout */
+  grid-template-columns: repeat(4, 1fr); /* 4 columns */
+  gap: 16px; /* Space between grid items */
+  margin-bottom: 20px; /* Space below the grid */
 }
 
-.no-results {
-  text-align: center;
-  color: #666;
+h2 {
+  font-size: 24px;
+}
+
+input {
+font-size: 13px;
 }
 
 .pagination {
+  margin-top: 20px; /* Space above pagination buttons */
+  display: flex;
+  justify-content: center; /* Center pagination buttons */
+}
+
+button {
+  margin: 0 5px; /* Space between buttons */
+}
+.modal {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: 20px;
-}
-
-.pagination button {
-  background-color: #008CBA;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  margin: 0 5px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.pagination button:hover:not(:disabled) {
-  background-color: #007B9A;
-}
-
-.pagination button:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.pagination span {
-  margin: 0 10px;
-}
-
-/* Modal styles */
-.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7); /* Assombrir l'arrière-plan */
+  z-index: 1000; /* Placer au-dessus de tout */
 }
 
-.modal {
-  background-color: white;
+.modal-content {
+  background-color: #fff;
   padding: 20px;
   border-radius: 8px;
-  width: 80%;
-  max-width: 500px;
+  width: 600px; /* Largeur de la modal */
+  height: 88%; /* Hauteur de la modal */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  animation: modalFadeIn 0.3s ease-out;
+  position: relative;
 }
 
-.modal h3 {
-  margin-top: 0;
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
 }
 
-.modal form {
-  display: flex;
-  flex-direction: column;
+h2 {
+  margin-bottom: 20px;
+  text-align: center;
 }
 
-.modal label {
-  margin-top: 10px;
+form div {
+  margin-bottom: 15px;
 }
 
-.modal input,
-.modal textarea {
-  margin-top: 5px;
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+input, select {
+  width: 100%;
   padding: 8px;
-  border: 1px solid #ddd;
+  border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
-.modal-buttons {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-}
-
-.modal-buttons button {
-  margin-left: 10px;
-  padding: 8px 16px;
+button {
+  width: 100px;
+  padding: 10px;
+  background-color: #007bff;
+  color: #fff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  font-size: 16px;
 }
 
-.modal-buttons button.save {
-  background-color: #4CAF50;
-  color: white;
+button:hover {
+  background-color: #0056b3;
 }
 
-.modal-buttons button.cancel {
-  background-color: #f44336;
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.actor-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.actor-item {
+  position: relative;
+  width: 200px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  transition: box-shadow 0.3s;
+}
+
+.actor-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.actor-item-buttons {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  gap: 10px;
+}
+
+.actor-item:hover .actor-item-buttons {
+  display: flex;
+}
+
+.actor-item-buttons button {
+  background-color: #3498db;
   color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.actor-item-buttons button:hover {
+  background-color: #2980b9;
+}
+
+.modal-content {
+  width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  background: white;
+  border-radius: 10px;
+  position: relative;
+}
+
+.modal-content .close {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  cursor: pointer;
+}
+
+.pagination {
+  margin-top: 20px;
 }
 </style>
