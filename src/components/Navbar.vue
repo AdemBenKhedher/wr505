@@ -69,18 +69,18 @@ nav ul li a:hover {
 }</style>
 <template>
   <div id="navbar">
-    <nav>
+    <div v-if="this.$route.path === '/login'">
+      <router-link to="/login">Login</router-link>
+    </div>
+    <nav v-else-if="isAuthenticated">
       <ul>
         <li><router-link to="/">Home</router-link></li>
         <li><router-link to="/movies">Movies</router-link></li>
         <li><router-link to="/actors">Actors</router-link></li>
         <li><router-link to="/categories">Categories</router-link></li>
-        <li class="profile" v-if="token">
+        <li class="profile">
           <router-link to="/profile">Edit Profile</router-link> /
           <a href="#" @click.prevent="logout">Logout</a>
-        </li>
-        <li v-else>
-          <router-link to="/login">Login</router-link>
         </li>
       </ul>
     </nav>
@@ -91,17 +91,29 @@ nav ul li a:hover {
 export default {
   data() {
     return {
-      token: localStorage.getItem('token') 
+      token: localStorage.getItem('token'), // Retrieve the token initially
     };
   },
+  computed: {
+    isAuthenticated() {
+      return !!this.token; // Returns true if the token exists
+    },
+
+  },
+
+
+
+
+  
   methods: {
     logout() {
-      localStorage.removeItem('token');
-      
-      this.token = null;
-
-      this.$router.push('/login');
-    }
-  }
+      localStorage.removeItem('token'); // Remove the token
+      this.token = null; // Update local state
+      this.$router.push('/login'); // Redirect to login
+    },
+  },
+  created() {
+    this.token = localStorage.getItem('token');
+  },
 };
 </script>

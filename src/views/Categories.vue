@@ -160,15 +160,13 @@ export default {
             console.error("Erreur lors de l'ajout de la catégorie :", error);
             this.errorMessage = "Erreur lors de l'ajout de la catégorie.";
         });
-},
-
+    },
     editCategory(category) {
       this.isEditMode = true;
       this.category.title = category.title; // Load the selected category's title into the modal
       this.selectedCategoryId = category.id; // Store the ID for later use
       this.showModal = true; // Open modal
     },
-    
     updateCategory() {
       const myHeaders = new Headers();
       const token = localStorage.getItem('token');
@@ -208,7 +206,6 @@ export default {
       this.selectedCategoryId = categoryId;
       this.deleteConfirmation = true;
     },
-
     deleteCategory(categoryId) {
       const myHeaders = new Headers();
       const token = localStorage.getItem('token');
@@ -236,18 +233,15 @@ export default {
           this.errorMessage = "Erreur lors de la suppression de la catégorie.";
         });
     },
-
     closeModal() {
       this.showModal = false; // Close modal
       this.resetCategory(); // Reset category data
       this.isEditMode = false; // Reset edit mode
     },
-
     resetCategory() {
       this.category.title = ''; // Reset the title for new category
       this.selectedCategoryId = null; // Clear selected category ID
     },
-
     goToPage(page) {
       if (page < 1 || page > this.totalPages) return; 
       this.currentPage = page;
