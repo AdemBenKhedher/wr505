@@ -4,7 +4,6 @@
 
     <div v-if="errorMessage">{{ errorMessage }}</div>
 
-    <!-- Input de recherche -->
     <label for="search">Rechercher :</label>
     <input 
       id="search" 
@@ -13,17 +12,14 @@
       placeholder="Entrez le nom d'un Acteur" 
     />
     
-    <!-- Bouton Ajouter un Acteur -->
     <button @click="showModal = true; resetActor()">Ajouter un Acteur</button>
     
-    <!-- Modal pour Ajouter/Modifier un Acteur -->
     <div class="modal" v-if="showModal">
       <div class="modal-content">
         <span class="close" @click="closeModal">&times;</span>
         <h2>{{ isEditMode ? 'Modifier' : 'Ajouter' }} un Acteur</h2>
         <form @submit.prevent="isEditMode ? updateActor() : addActor()">
           <div class="form-container">
-      <!-- Première colonne -->
         <div class="form-column">
           <div>
             <label for="actor-lastname">Nom de famille :</label>
@@ -219,9 +215,60 @@ export default {
           this.errorMessage = "Impossible de récupérer les acteurs."; 
         });
     },
-    goToPage(page) {
-      if (page < 1 || page > this.totalPages) return; 
-      this.currentPage = page; 
+    addActor() {
+  const token = localStorage.getItem('token');
+  const myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Authorization", `Bearer ${token}`);
+
+  function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+
+  const newActor = {
+    lastname: this.actor.lastname,
+    firstname: this.actor.firstname,
+    bio: this.actor.bio,
+    dob: this.actor.dob, 
+    dod: this.actor.dod,
+    nationalty: this.actor.nationalty,
+    awards: parseInt(this.actor.awards, 10),
+    gender: this.actor.gender,
+    created_at: formatDate( new Date() ),
+    updated_at: formatDate( new Date() ),
+    };
+
+  console.log('Payload being sent:', newActor);
+
+  const requestOptions = {
+    method: "POST",
+    headers: myHeaders,
+    body: JSON.stringify(newActor),
+  };
+
+  fetch("http://symfony.mmi-troyes.fr:8319/api/actors", requestOptions)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erreur lors de l\'ajout de l\'acteur');
+      }
+      return response.json();
+    })
+    .then(result => {
+      console.log("Acteur ajouté :", result);
+      this.resetActor();
+      this.fetchActors();
+      this.closeModal();
+    })
+    .catch(error => {
+      console.error("Erreur lors de l'ajout de l'acteur :", error);
+    });
     },
     updateActor() {
     const token = localStorage.getItem('token');
@@ -285,60 +332,9 @@ export default {
     this.showModal = true;
     this.selectedActorId = actor.id;
     },
-    addActor() {
-  const token = localStorage.getItem('token');
-  const myHeaders = new Headers();
-  myHeaders.append("Content-Type", "application/json");
-  myHeaders.append("Authorization", `Bearer ${token}`);
-
-  function formatDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-  }
-
-  const newActor = {
-    lastname: this.actor.lastname,
-    firstname: this.actor.firstname,
-    bio: this.actor.bio,
-    dob: this.actor.dob, 
-    dod: this.actor.dod,
-    nationalty: this.actor.nationalty,
-    awards: parseInt(this.actor.awards, 10),
-    gender: this.actor.gender,
-    created_at: formatDate( new Date() ),
-    updated_at: formatDate( new Date() ),
-    };
-
-  console.log('Payload being sent:', newActor);
-
-  const requestOptions = {
-    method: "POST",
-    headers: myHeaders,
-    body: JSON.stringify(newActor),
-  };
-
-  fetch("http://symfony.mmi-troyes.fr:8319/api/actors", requestOptions)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Erreur lors de l\'ajout de l\'acteur');
-      }
-      return response.json();
-    })
-    .then(result => {
-      console.log("Acteur ajouté :", result);
-      this.resetActor();
-      this.fetchActors();
-      this.closeModal();
-    })
-    .catch(error => {
-      console.error("Erreur lors de l'ajout de l'acteur :", error);
-    });
+    confirmDeleteActor(actorId) {
+      this.actor.id = actorId;
+      this.deleteConfirmation = true;
     },
     deleteActor(actorId) {
       const token = localStorage.getItem('token');
@@ -353,9 +349,10 @@ export default {
         this.deleteConfirmation = false; 
       });
     },
-    confirmDeleteActor(actorId) {
-      this.actor.id = actorId;
-      this.deleteConfirmation = true;
+    closeModal() {
+      this.showModal = false; 
+      this.resetActor(); 
+      this.isEditMode = false;
     },
     resetActor() {
       this.actor = {
@@ -371,10 +368,9 @@ export default {
         updated_at: '',
       };
     },
-    closeModal() {
-      this.showModal = false; 
-      this.resetActor(); 
-      this.isEditMode = false;
+    goToPage(page) {
+      if (page < 1 || page > this.totalPages) return; 
+      this.currentPage = page; 
     },
   },
   created() {
