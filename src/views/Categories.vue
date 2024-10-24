@@ -166,9 +166,21 @@ export default {
       const token = localStorage.getItem('token');
       myHeaders.append("Content-Type", "application/merge-patch+json");
       myHeaders.append("Authorization", `Bearer ${token}`);
+      
+      function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
 
       const raw = JSON.stringify({
         title: this.category.title,
+        updatedAt: formatDate(new Date()),
       });
 
       const requestOptions = {
@@ -207,32 +219,55 @@ export default {
       this.deleteConfirmation = true;
     },
     deleteCategory(categoryId) {
-      const myHeaders = new Headers();
-      const token = localStorage.getItem('token');
-      myHeaders.append("Authorization", `Bearer ${token}`);
+  const myHeaders = new Headers();
+  const token = localStorage.getItem('token');
+  myHeaders.append("Authorization", `Bearer ${token}`);
 
+  // Étape 1 : Récupérer les détails de la catégorie pour vérifier les films associés
+  fetch(`http://symfony.mmi-troyes.fr:8319/api/categories/${categoryId}`, {
+    method: "GET",
+    headers: myHeaders,
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erreur lors de la récupération des détails de la catégorie');
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Étape 2 : Vérifiez si la catégorie a des films associés
+      const movies = data.movies || [];
+      if (movies.length > 0) {
+        this.deleteConfirmation = false; // Cacher la confirmation
+        alert("Impossible de supprimer cette catégorie car elle est liée à un ou plusieurs films.");
+        return; // Sortir de la fonction si des films sont associés
+      }
+
+      // Étape 3 : Si aucun film n'est associé, procédez à la suppression
       const requestOptions = {
         method: "DELETE",
         headers: myHeaders,
       };
 
-      fetch(`http://symfony.mmi-troyes.fr:8319/api/categories/${categoryId}`, requestOptions)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Erreur lors de la suppression de la catégorie');
-          }
-          return response.text();
-        })
-        .then(result => {
-          console.log("Catégorie supprimée :", result);
-          this.fetchCategories(); // Refresh category list
-          this.deleteConfirmation = false; // Hide confirmation
-        })
-        .catch(error => {
-          console.error("Erreur lors de la suppression de la catégorie :", error);
-          this.errorMessage = "Erreur lors de la suppression de la catégorie.";
-        });
-    },
+      return fetch(`http://symfony.mmi-troyes.fr:8319/api/categories/${categoryId}`, requestOptions);
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Erreur lors de la suppression de la catégorie');
+      }
+      return response.text();
+    })
+    .then(result => {
+      console.log("Catégorie supprimée :", result);
+      this.fetchCategories(); // Actualiser la liste des catégories
+      this.deleteConfirmation = false; // Cacher la confirmation
+    })
+    .catch(error => {
+      console.error("Erreur :", error);
+      alert(error.message || "Erreur lors de l'opération.");
+    });
+},
+
     closeModal() {
       this.showModal = false; // Close modal
       this.resetCategory(); // Reset category data
