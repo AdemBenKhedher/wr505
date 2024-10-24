@@ -47,6 +47,8 @@
         <label for="entries">Entries:</label>
         <input type="number" id="entries" v-model="movie.entries">
 
+
+
         <label for="director">Director:</label>
         <input type="text" id="director" v-model="movie.director" required>
 
@@ -60,6 +62,21 @@
           <button type="submit">{{ isEditMode ? 'Update Movie' : 'Add Movie' }}</button>
           <button type="button" @click="closeModal">Cancel</button>
         </div>
+        <template>
+  <div>
+    <h2>Acteurs</h2>
+    <div v-if="actors.length === 0">Aucun acteur disponible.</div>
+    <div class="actor-list">
+      <ul>
+        <li v-for="actor in actors" :key="actor.id">
+          {{ actor.firstname }} {{ actor.lastname }}
+          <input type="checkbox" :value="actor.id" v-model="selectedActors">
+        </li>
+      </ul>
+    </div>
+  </div>
+</template>
+
       </form>
     </div>
   </div>
@@ -95,6 +112,8 @@ export default {
   data() {
     return {
       movies: [], 
+      selectedActors: [], 
+      actors: [],
       movie: {
       title: '',
       description: '',
@@ -117,7 +136,7 @@ export default {
     };
   },
   computed: {
-
+ 
     filteredMovies() {
       if (!this.query) return this.movies;
       return this.movies.filter(movie => 
@@ -131,8 +150,31 @@ export default {
       const start = (this.currentPage - 1) * this.limit;
       return this.filteredMovies.slice(start, start + this.limit);
     }
+  },  mounted() {
+    this.fetchActors(); // Récupérer les acteurs au chargement du composant
   },
   methods: {
+    fetchActors() {
+      const token = localStorage.getItem('token'); 
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow",
+        headers: { 
+          Authorization: `Bearer ${token}` 
+        }
+      };
+
+      fetch("http://symfony.mmi-troyes.fr:8319/api/actors", requestOptions)
+        .then(response => response.json()) 
+        .then(result => {
+          this.actors = result.member;
+          console.log("Acteurs récupérés :", this.actors); 
+        })
+        .catch(error => {
+          console.error("Erreur lors de la récupération des acteurs :", error);
+          this.errorMessage = "Impossible de récupérer les acteurs."; 
+        });
+    },
     fetchMovies() {
       const token = localStorage.getItem('token'); 
       const requestOptions = {
@@ -175,6 +217,15 @@ export default {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
 
+  // Validation des champs requis
+  if (!this.movie.title || !this.movie.release_date || !this.selectedActors.length) {
+    alert("Veuillez remplir tous les champs requis et sélectionner au moins un acteur.");
+    return;
+  }
+
+  // Formater les IDs des acteurs en tant qu'URI
+  const actorUris = this.selectedActors.map(actorId => `http://symfony.mmi-troyes.fr:8319/api/actors/${actorId}`);
+
   const newMovie = {
     title: this.movie.title,
     description: this.movie.description,
@@ -185,7 +236,8 @@ export default {
     rating: parseFloat(this.movie.rating),
     createdAt: formatDate(new Date()),
     updatedAt: formatDate(new Date()),
-    media_id: this.movie.media_id, // assuming media_id is an integer or string ID
+    media_id: this.movie.media_id,
+    actors: actorUris // Utiliser les URI formatés
   };
 
   console.log('Payload being sent:', newMovie);
@@ -206,13 +258,14 @@ export default {
     .then(result => {
       console.log("Film ajouté :", result);
       this.resetMovie();
+      this.selectedActors = []; // Réinitialisez les acteurs sélectionnés après l'ajout
       this.fetchMovies();
       this.closeModal();
     })
     .catch(error => {
       console.error("Erreur lors de l'ajout du film :", error);
     });
-    },
+},
     updateMovie() {
   const token = localStorage.getItem('token');
   const myHeaders = new Headers();
@@ -229,7 +282,15 @@ export default {
 
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
   }
+  // Récupérer les acteurs existants
+  const existingActors = this.movie.actors; // Supposons que cela contient les URI existants
 
+  // Formater les IDs des nouveaux acteurs en tant qu'URI
+  const newActorUris = this.selectedActors.map(actorId => `http://symfony.mmi-troyes.fr:8319/api/actors/${actorId}`);
+
+  // Fusionner les URI existants et les nouveaux URI
+  const updatedActors = [...new Set([...existingActors, ...newActorUris])];
+  
   const updatedMovie = {
     title: this.movie.title,
     description: this.movie.description,
@@ -241,6 +302,8 @@ export default {
     createdAt: this.movie.createdAt,
     updatedAt: formatDate(new Date()),
     media_id: this.movie.media_id,
+    actors: updatedActors // Utiliser les URI formatés
+
   };
 
   console.log('Payload update being sent:', updatedMovie);
@@ -264,6 +327,8 @@ export default {
       this.fetchMovies();
       this.closeModal();
       this.isEditMode = false;
+      this.selectedActors = []; // Réinitialisez les acteurs sélectionnés après l'ajout
+
     })
     .catch(error => {
       console.error("Erreur lors de la modification du film :", error);
@@ -388,6 +453,13 @@ button {
 
 button:hover {
   background-color: #0056b3;
+}
+.actor-list {
+  max-height: 200px; /* Ajustez la hauteur selon vos besoins */
+  overflow-y: auto;  /* Active le défilement vertical */
+  border: 1px solid #ccc; /* Optionnel : pour ajouter une bordure */
+  padding: 10px; /* Optionnel : pour ajouter du remplissage */
+  background-color: #f9f9f9; /* Optionnel : pour ajouter un fond */
 }
 
 </style>
