@@ -18,10 +18,8 @@
    
     <ul v-if="paginatedMovies.length">
   <li v-for="movie in paginatedMovies" :key="movie.id">
-    <!-- Render the MovieCard component -->
     <MovieCard :movie="movie" />
 
-    <!-- Edit and Delete buttons for each movie -->
     <button @click="editMovie(movie)">Edit</button>
     <button @click="confirmDeleteMovie(movie.id)">Delete</button>
   </li>
@@ -140,7 +138,7 @@ export default {
     filteredMovies() {
       if (!this.query) return this.movies;
       return this.movies.filter(movie => 
-        movie.title && movie.title.toLowerCase().includes(this.query.toLowerCase())
+        movie.title && movie.title.includes(this.query)
       );
     },
     totalPages() {
