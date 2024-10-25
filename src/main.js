@@ -1,8 +1,11 @@
-import Vue from 'vue'
-import App from './App.vue'
+import RouterPlugin from "vue-router";
+import router from "./router/index.js";
+import Vue from "vue";
+import App from "./App.vue";
 
-import './assets/main.css'
+Vue.use(RouterPlugin)
 
 new Vue({
-  render: (h) => h(App)
-}).$mount('#app')
+  render: h => h(App),
+  router
+}).$mount("#app");
